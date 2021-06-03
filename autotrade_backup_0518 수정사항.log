@@ -1,0 +1,26 @@
+- update 시 거래량 많았던 대장들은 바로 직전 timepoint의 데이터가 불러오지 않는 경우가 있어서:
+	우선 거래량 작은 -> 큰 거 순서로 tickers를 정렬한 후에, 각 ticker별로 만약 현재 timepoint != ohlcv시간 이라면 다시 불러서 맞춰질때까지 체크 후 total_df에 더하는 방식
+
+- high/low rsi (시작 기준 60/45)각각 candidate고를 때, 우선 tail을 각각 2/30에서 시작하고 tail을 우선 늘려본 다음에, 최대이후에도 안 골라지면 그 때 cutoff를 high는 -0.5씩, low는 +1 씩 조정한다.
+
+- 이 때 처음 cutoff 만족시 coin이 많이 선택되는데 이중에서는 거래량이 높았던 순서로 filtering하였음
+	- high는 기준을 [tail] volume*close. mean()으로 하였고
+	- low는 기준을 [tail] volume*close.median()으로 하였음 (그 이유는 low를 선정하는 이유가 급등을 노리기 위해서인데, mean()으로 설정하면 이미 한번 급등했던 coin이 그때의 영향으로 거래량 높은 코인으로 골라져버리기 때문)
+
+- rsi_ewm 구하는 함수 numpy에 사용할 수 있도록 다 수정하였음!
+
+- candidates_high인 애들은 current rsi(과거 13개 데이터+현재값으로 구한 rsi) > 50이 포함되어 있지만,
+	candidates_low인 애들은 당기에 아무리 상승해도 긴 시간 rsi < 45 였던 애들이기 때문에 current rsi를 기준에 넣지 않았다.
+
+- [-1] 거래량 > [-2] 거래량인 candidate만 선정함.
+
+===========추가로 할 일 ==============
+1. 이중 노이즈 고려하기: 
+	[-1] close>open일 때
+		[-1]의 high-close가, close-open의 2배면 매수 진행 X
+		[-1]의 high-close & abs(open-low) 관련성?
+
+2. 하한선 정하기
+	매수 이후 price < target_price * (1-5/100) 되면 sell.
+	
+
