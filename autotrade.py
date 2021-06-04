@@ -23,7 +23,7 @@ import sys
 
 def post_message(*values):
     """슬랙 메시지 전송"""
-    myToken = "xoxb-2120785924737-2120807096337-Omv2JW7ryhY6QBAuR0zJszGZ"
+    myToken = "xoxb-2120785924737-2155139235344-O7DK0iXQK30Vd8TItQnNmUJn"
     texts = []
     for item in values:
         texts.append(str(item))
@@ -691,6 +691,7 @@ while True:
 
         # get high rsi candidates
         coins_rsi = {}
+        low_rsi = {}
         coin_number = 0
         low_rsi_cutoff = 45
         tail_minimum2 = 30
@@ -709,26 +710,31 @@ while True:
                     # print_to_slack(tail_minimum1, "got high rsi for", coin)
 
                 # low_rsi = {key: value for (key, value) in coins_rsi.items() if (coins_rsi[key] < low_rsi_cutoff)  & (total_df[key]['volume'][-1] >= total_df[key]['volume'][-2])}
-                low_rsi = {key: value for (key, value) in coins_rsi.items() if (coins_rsi[key] < low_rsi_cutoff) }
+                # low_rsi = {key: value for (key, value) in coins_rsi.items() if (coins_rsi[key] < low_rsi_cutoff) }
+                    for (key, value) in coins_rsi.items():
+                        if (coins_rsi[key] < low_rsi_cutoff):
+                            low_rsi[key] = value
+
                 coin_number = len(low_rsi)
 
-                if coin_number > 0:
+                if coin_number > 7 - len(candidates_high):
                     break
                 else:
                     if tail_minimum2 % 20 == 0:
                         print_to_slack(tail_minimum2, "got low rsi for all coins with low rsi cutoff ", low_rsi_cutoff)
+                        print_to_slack("current low rsi length is ", coin_number)
                     tail_minimum2 += 1  
 
             low_rsi_cutoff += 1
             tail_minimum2 = 30
-            if coin_number > 0:
+            if coin_number > 7 - len(candidates_high):
                 break
 
 
 
         candidates_low = [x for x in [*low_rsi] if not x in candidates_high]
         # rsi_m_appearance = [x for x in rsi_m_appearance if not x in candidates_high]  # no probability that this happens
-        
+        print_to_slack("current low rsi length is ", coin_number)
         print_to_slack("before filtering by capacity, candidates_low are ", candidates_low)
         print_to_slack(coins_rsi)
 
@@ -762,7 +768,7 @@ while True:
             coin = candidates[coin_num]
             # optimum_check columns: ['days','back_length', 'per','splits','ma','k','hpr','count_loss','mdd', 'vol_index', new_range_average, new_ma5]
             maximums = find_maximum_index(
-                total_df[coin], per=10, days=1, splits=1 if coin in rsi_m_appearance else 8, back_length=14+tail_minimum1 if (coin in candidates_high) else 14+tail_minimum2, high_index=1 if (coin in candidates_high) else 0, splits_min=4 if coin in high_rsi_increasing else 1) ##### 100 or 14+tail_minimum?
+                total_df[coin], per=10, days=1, splits=8, back_length=14+tail_minimum1 if (coin in candidates_high) else 14+tail_minimum2, high_index=1 if (coin in candidates_high) else 0, splits_min=4 if coin in high_rsi_increasing else 1) ##### 100 or 14+tail_minimum?
             if maximums:
                 optimum_check = np.vstack(maximums)
                 # there might be different optimums that have maximum index, so just pick the first one
@@ -775,7 +781,7 @@ while True:
                 while not maximums:
                     new_tail += 1
                     maximums = find_maximum_index(
-                        total_df[coin], per=10, days=1, splits=1 if coin in rsi_m_appearance else 8, back_length=new_tail, high_index=1 if (coin in candidates_high) else 0, splits_min=4 if coin in high_rsi_increasing else 1)
+                        total_df[coin], per=10, days=1, splits=8, back_length=new_tail, high_index=1 if (coin in candidates_high) else 0, splits_min=4 if coin in high_rsi_increasing else 1)
                 optimum_check = np.vstack(maximums)
                 # there might be different optimums that have maximum index, so just pick the first one
                 optimum_loc = np.where(
