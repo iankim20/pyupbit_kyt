@@ -19,11 +19,11 @@ import sys
 # sys.stdout = old_stdout
 # log_file.close()
 
-# myToken = "xoxb-2120785924737-2120807096337-Omv2JW7ryhY6QBAuR0zJszGZ"
+# myToken = ""
 
 def post_message(*values):
     """슬랙 메시지 전송"""
-    myToken = "xoxb-2120785924737-2155139235344-O7DK0iXQK30Vd8TItQnNmUJn"
+    myToken = ""
     texts = []
     for item in values:
         texts.append(str(item))
@@ -1237,7 +1237,7 @@ while True:
 
     elif now < time_checkpoint + datetime.timedelta(hours=1):
         while now < time_checkpoint + datetime.timedelta(hours=1):
-            if sum(bought) >0:
+            if sum(bought) > 0:
                 for coin_num in range(coin_number):
                     if bought[coin_num] == 1 :
                         # if already_sell[coin_num] == 1:
